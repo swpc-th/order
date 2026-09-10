@@ -10,26 +10,39 @@
       padding: 0;
       height: 100%;
       width: 100%;
-      overflow: hidden;
       background: #F6F5F1;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      color: #16231F;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    #appFrame {
-      border: none;
-      width: 100%;
-      height: 100%;
-      display: block;
+    .box {
+      max-width: 420px;
+      text-align: center;
+      padding: 32px 24px;
     }
-    /* ข้อความเตือนกรณียังไม่ได้ใส่ลิงก์เว็บแอป */
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid #E1E4DF;
+      border-top-color: #1D6F64;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    a.manual-link {
+      color: #1D6F64;
+      word-break: break-all;
+    }
     #setupNotice {
       display: none;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      max-width: 560px;
-      margin: 60px auto;
-      padding: 20px 24px;
+      text-align: left;
       background: #fff;
       border: 1px solid #E1E4DF;
       border-radius: 12px;
-      color: #16231F;
+      padding: 20px 24px;
       line-height: 1.6;
     }
     #setupNotice code {
@@ -43,19 +56,31 @@
 
   <!--
     ============================================================
-    วิธีใช้งาน:
+    ⚠️ หมายเหตุสำคัญ: หน้านี้ "เด้งไปหน้าเว็บแอป" แทนการฝัง iframe
+    เพราะสคริปต์ระบบสั่งซื้อใช้สิทธิ์ Google Drive แบบเต็มรูปแบบ
+    (สร้างโฟลเดอร์ / อัปโหลดไฟล์รูปสินค้าและสลิป) ซึ่ง Google บังคับ
+    ไม่ให้ฝังเว็บแอปประเภทนี้ผ่าน iframe ได้ (กันการหลอกขโมยสิทธิ์)
+    จึงต้องใช้วิธี redirect แทน — URL ของ GitHub Pages ยังใช้แจกได้ปกติ
+    เพียงแต่พอเปิดแล้ว URL bar จะเปลี่ยนเป็นลิงก์ script.google.com
+
+    วิธีตั้งค่า:
     1) เปิด Google Sheet ของระบบสั่งซื้อ -> เมนู "🛒 ระบบสั่งซื้อสินค้า"
        -> "🌐 ดูลิงก์เว็บสั่งซื้อ (สำหรับแจกสมาชิก)" เพื่อคัดลอกลิงก์เว็บแอป
-       (ต้องกด Deploy เว็บแอปที่ Apps Script Editor ก่อน 1 ครั้ง)
-    2) นำลิงก์ที่ได้ (รูปแบบ https://script.google.com/macros/s/XXXXXXXXXXXXX/exec)
-       มาแทนที่ค่า WEB_APP_URL ด้านล่างนี้
-    3) บันทึกไฟล์นี้เป็น index.html แล้วอัปโหลดขึ้น GitHub repo ที่เปิดใช้ GitHub Pages
-    4) URL ของ GitHub Pages (เช่น https://ชื่อผู้ใช้.github.io/ชื่อ-repo/) จะเป็นลิงก์
-       ที่เอาไปแจกสมาชิกได้ — เนื้อหาข้างในยังคงรันจริงบน Google Apps Script เหมือนเดิม
+    2) นำลิงก์ที่ได้มาแทนที่ค่า WEB_APP_URL ในส่วน <script> ด้านล่าง
+    3) บันทึกไฟล์นี้เป็น index.html แล้วอัปโหลดขึ้น GitHub repo ที่เปิด GitHub Pages
     ============================================================
   -->
 
-  <div id="setupNotice">
+  <div class="box" id="loadingBox">
+    <div class="spinner"></div>
+    <div>กำลังพาไปหน้าสั่งซื้อสินค้า...</div>
+    <div style="margin-top:10px;font-size:12.5px;color:#6B7A74;">
+      หากไม่เด้งไปอัตโนมัติ กดลิงก์นี้:
+      <br><a class="manual-link" id="manualLink" href="#">เปิดหน้าสั่งซื้อ</a>
+    </div>
+  </div>
+
+  <div class="box" id="setupNotice">
     <h3>⚠️ ยังไม่ได้ตั้งค่าลิงก์เว็บแอป</h3>
     <p>
       กรุณาแก้ไขไฟล์ <code>index.html</code> นี้ แล้วแทนที่ค่าตัวแปร
@@ -64,17 +89,17 @@
     </p>
   </div>
 
-  <iframe id="appFrame" title="สั่งซื้อสินค้า สภาวิชาชีพสังคมสงเคราะห์"></iframe>
-
   <script>
     // 🔧 แก้ตรงนี้: ใส่ลิงก์เว็บแอปที่ deploy แล้วจาก Apps Script
     var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxhLE-VbbOXep2Jf5lrzESjqbVbN9CyWw7qAcxc9yExXGUifEGpmEEjnCgjpxGRlp_d/exec";
 
     if (!WEB_APP_URL || WEB_APP_URL.indexOf("XXXXXXX") !== -1) {
       document.getElementById('setupNotice').style.display = 'block';
-      document.getElementById('appFrame').style.display = 'none';
+      document.getElementById('loadingBox').style.display = 'none';
     } else {
-      document.getElementById('appFrame').src = WEB_APP_URL;
+      document.getElementById('manualLink').href = WEB_APP_URL;
+      // เด้งไปหน้าเว็บแอปทันที (แทนที่ประวัติ ไม่ให้กดย้อนกลับมาหน้าว่างนี้)
+      window.location.replace(WEB_APP_URL);
     }
   </script>
 
